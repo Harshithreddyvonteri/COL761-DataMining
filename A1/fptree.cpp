@@ -3,6 +3,7 @@ using namespace std;
 map<int,vector<int>> decompressor;
 map<vector<int>, int> compressor;
 int curmax;
+#define int long long
 struct Node{
 	Node* parent;
 	vector<Node*> children;

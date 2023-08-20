@@ -1,5 +1,6 @@
 #include<bits/stdc++.h>
 using namespace std;
+#define int long long
 void rec(int x, map<int,vector<int>> &decrypt, vector<int> &val){
 	if(decrypt.find(x)!=decrypt.end()){
 		for(auto item: decrypt[x]){

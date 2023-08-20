@@ -194,12 +194,15 @@ void compress_file(string file, string outfile, map<int, int> &freq){
 	output.open(outfile);
 	fstream inp2(file);
 	string s1;
+        int l1 = 0;
+        int l2 = 0;
 	int cnt1 = 0;
 	int cnt2 = 0;
 	while (getline (inp2, s1)){
 		if(s1.empty()){
 			break;
 		}
+                l1++;
 		stringstream ss(s1);
 		string temp;
 		vector<int> curr;
@@ -254,6 +257,7 @@ void compress_file(string file, string outfile, map<int, int> &freq){
 				}
 				output << "\n";
 			}
+                        l2++;
 		}
 	}
 	output << "\n";
@@ -277,12 +281,15 @@ void compress_file(string file, string outfile, map<int, int> &freq){
 			cnt1++;
 		}
 	}
+        cout << "Lines in file 1 " << l1 << endl;
+        cout << "Lines in file 2 " << l2 << endl; 
 	inp2.close();
 	output.close();
 	cout << cnt1 << " " << cnt2 << endl;
 	cout << (double) (cnt1 - cnt2) / (double) cnt1 << endl;
 }
-void plot(map<int,int> freq){
+
+void plot(map<int,int> &freq){
 	map<int,int> freq_count;
 	for(auto itm: freq){
 		int a,b;
@@ -310,14 +317,17 @@ int find_threshold(map<int, int> &freq, double percentile){
 	sort(frequencies.begin(), frequencies.end());
 	// int pos = min(percentile*frequencies.size(), (double)frequencies.size()-1);
 	int p = percentile;
-	int pos;
-	if(frequencies.size() < 2000*p){
-		pos = frequencies.size()/2;
+	int pos=frequencies.size()*percentile;
+
+	if(frequencies.size() < 20000){
+//		pos = frequencies.size()*0.5;
 	}
 	else{
-		pos = frequencies.size() - 1800;
+//		pos = frequencies.size() - 20000;
 	}
+//	plot(freq);
 	return frequencies[pos];
+//	plot(freq);
 }
 
 void fptree(string file, vector<set<int>> &ans, string outfile, double percentile){
@@ -346,7 +356,7 @@ void fptree(string file, vector<set<int>> &ans, string outfile, double percentil
 	}
 	inp1.close();
 	int threshold = find_threshold(freq, percentile);
-	cout << threshold << endl;
+	cout << "Threshold: " << threshold << endl;
 	for(auto itr = distinctItems.begin(); itr != distinctItems.end(); itr++){
 		if(freq[*itr]< threshold){
 			freq.erase(*itr);
@@ -428,7 +438,7 @@ int main(int argc, char* argv[]){
 	string dataset = argv[1];
 	string outName = argv[2];
 	vector<string> outfile_names = {"compressed1.dat", "compressed2.dat", outName};
-	vector<double> percentiles = {1, 1.5, 1.8};
+	vector<double> percentiles = {0.75, 0.7, 0.7};
 	curmax = 0;
 	for(int i = 0; i < 3; i++){
 		string outfile = outfile_names[i];

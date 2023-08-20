@@ -1,15 +1,18 @@
 #include<bits/stdc++.h>
 using namespace std;
-string rec(int x, map<int,vector<int>> decrypt){
+void rec(int x, map<int,vector<int>> &decrypt, vector<int> &val){
 	if(decrypt.find(x)!=decrypt.end()){
-		string ans = "";
 		for(auto item: decrypt[x]){
-			ans += rec(item,decrypt) + " ";
+			rec(item,decrypt,val);
+			//v.insert(v.end(),temp.begin(),temp.end());
 		}
-		return ans;
+		return;
+		//return v;
 	}
-	return to_string(x);
+	val.push_back(x);
+	//return v;
 }
+
 void getback_file(string inputfile, string outputfile){
 	
 	//Obtaining map
@@ -33,7 +36,7 @@ void getback_file(string inputfile, string outputfile){
 		}
 	}
 	inp.close();
-
+	cout << "Decompression started" << endl;
 	// using map to create original file
 	ofstream output;
 	output.open(outputfile);
@@ -47,8 +50,12 @@ void getback_file(string inputfile, string outputfile){
 		string temp;
 		while(ss1>>temp){
 			if(decrypt.find(stoi(temp))!=decrypt.end()){
-				string val = rec(stoi(temp),decrypt);
-				output<<val;
+				vector<int> val;
+				rec(stoi(temp),decrypt,val);
+				for(auto num:val){
+					output<<num<<" ";
+				}
+				
 			}
 			else{
 				output<< temp << " ";

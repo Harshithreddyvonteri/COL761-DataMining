@@ -254,7 +254,7 @@ double compress_file(string file, string outfile, map<int, int> &freq){
 			else
 			{
 				for(auto ele: prev)
-				{
+				{99025304
 					cnt2++;
 					output << ele << " ";
 				}
@@ -524,7 +524,7 @@ signed main(int32_t argc, char* argv[]){
 		}
 		auto cur_time = high_resolution_clock::now();
 		auto duration = duration_cast<std::chrono::minutes>(cur_time - start);
-		if(duration.count() <  55){
+		if(duration.count() <  58){
 			//cout << "Writing to file" << endl;
             		copy_file(outfile, outName);
         	}

@@ -1,9 +1,11 @@
 #include<bits/stdc++.h>
+#include<chrono>
 using namespace std;
+using namespace std::chrono;
+#define int long long
 map<int,vector<int>> decompressor;
 map<vector<int>, int> compressor;
 int curmax;
-#define int long long
 struct Node{
 	Node* parent;
 	vector<Node*> children;
@@ -181,16 +183,16 @@ void mineTree(int data, int threshold, int num_transactions, set<int> condset, m
 // }
 
 void create_compressor(vector<vector<int>> &freq_sets){
-	cout << "Start: " << curmax << endl;
-	cout << freq_sets.size() << endl;
+	//cout << "Start: " << curmax << endl;
+	//cout << freq_sets.size() << endl;
 	for(auto it:freq_sets){
 		compressor[it] = curmax+1;
 		++curmax;
 	}
-	cout << "Final: " << curmax << endl;
+	//cout << "Final: " << curmax << endl;
 }
 
-void compress_file(string file, string outfile, map<int, int> &freq){
+double compress_file(string file, string outfile, map<int, int> &freq){
 	ofstream output;
 	output.open(outfile);
 	fstream inp2(file);
@@ -282,12 +284,14 @@ void compress_file(string file, string outfile, map<int, int> &freq){
 			cnt1++;
 		}
 	}
-        cout << "Lines in file 1 " << l1 << endl;
-        cout << "Lines in file 2 " << l2 << endl; 
+        //cout << "Lines in file 1 " << l1 << endl;
+        //cout << "Lines in file 2 " << l2 << endl; 
 	inp2.close();
 	output.close();
-	cout << cnt1 << " " << cnt2 << endl;
-	cout << (double) (cnt1 - cnt2) / (double) cnt1 << endl;
+	cout << "Integers in original and compressed files: " << cnt1 << ", " << cnt2 << endl;
+	//cout << (double) (cnt1 - cnt2) / (double) cnt1 << endl;
+	double compression = (double) (cnt1 - cnt2) / (double) cnt1;
+	return compression;
 }
 
 void plot(map<int,int> &freq){
@@ -310,33 +314,76 @@ void plot(map<int,int> &freq){
 	output.close();
 }
 
+double mean(std::vector<int>& data) {
+    if (data.empty()) {
+        std::cerr << "Error: Empty vector provided." << std::endl;
+        return 0.0;
+    }
+    
+    double sum = 0.0;
+    for (double num : data) {
+        sum += num;
+    }
+    
+    return sum / data.size();
+}
+
+double stddev(std::vector<int>& data) {
+    if (data.empty()) {
+        std::cerr << "Error: Empty vector provided." << std::endl;
+        return 0.0;
+    }
+    
+    double m = mean(data);
+    double sumSquaredDiffs = 0.0;
+    
+    for (double num : data) {
+        double diff = num - m;
+        sumSquaredDiffs += diff * diff;
+    }
+    
+    double variance = sumSquaredDiffs / data.size();
+    return std::sqrt(variance);
+}
+
 int find_threshold(map<int, int> &freq, double percentile){
 	vector<int> frequencies;
 	for(auto itm: freq){
 		frequencies.push_back(itm.second);
 	}
+	double p = percentile;
+	//cout << mean(frequencies) << " " << stddev(frequencies) << endl;
+// 	double pos = mean(frequencies) + p*stddev(frequencies);
+//	if(pos < 0){
+//		return mean(frequencies);
+//	}
+//	return abs(pos);
+//	return frequencies[(int)pos]; 
 	sort(frequencies.begin(), frequencies.end());
-	// int pos = min(percentile*frequencies.size(), (double)frequencies.size()-1);
-	int p = percentile;
-	int pos=frequencies.size()*percentile;
-
-	if(frequencies.size() < 20000){
-//		pos = frequencies.size()*0.5;
+//	int pos = min(percentile*frequencies.size(), (double)frequencies.size()-1);
+//	int p = percentile;
+//	int pos=frequencies.size()*percentile;
+	int pos;
+	if(frequencies.size() < (int)(p*1000.0)){
+		pos = frequencies.size()*(0.7/p);
 	}
 	else{
-//		pos = frequencies.size() - 20000;
+		pos = frequencies.size() -(int) (p*300.0);
 	}
+	//cout << "Pos: " << (int) (p*300.0) << " " << pos << endl;
 //	plot(freq);
+//	exit(1);
 	return frequencies[pos];
 //	plot(freq);
 }
 
-void fptree(string file, vector<set<int>> &ans, string outfile, double percentile){
+int fptree(string file, vector<set<int>> &ans, string outfile, double percentile){
 	int num_transactions = 0;
 
 	// Store frequency of itemsets
-	cout << "Start curmax: " << curmax << endl;
+	//cout << "Start curmax: " << curmax << endl;
 	map<int, int> freq;
+	map<int, int> freq1;
 	set<int> distinctItems;
 	map<int, Node*> headerTable;
 	vector<pair<int, int>> v;
@@ -357,12 +404,10 @@ void fptree(string file, vector<set<int>> &ans, string outfile, double percentil
 	}
 	inp1.close();
 	int threshold = find_threshold(freq, percentile);
-	cout << "Threshold: " << threshold << endl;
+	//cout << "Thresholds: " << threshold << endl;
 	for(auto itr = distinctItems.begin(); itr != distinctItems.end(); itr++){
-		if(freq[*itr]< threshold){
-			freq.erase(*itr);
-		}
-		else{
+		if(freq[*itr]>= threshold){
+			freq1[*itr] = freq[*itr];
 			set<int> S;
 			S.insert(*itr);	
 			ans.push_back(S);
@@ -370,20 +415,22 @@ void fptree(string file, vector<set<int>> &ans, string outfile, double percentil
 		}
 	}
 	sort(v.begin(), v.end());
-	createTree(file, freq, headerTable);
-
+	//cout << "Reading done" << endl;
+	createTree(file, freq1, headerTable);
+	//cout << "Creation done" << endl;
 	for(int i = 0; i < v.size(); i++){
 		set<int> S;
 		S.insert(v[i].second);
 		mineTree(v[i].second, threshold, num_transactions, S, headerTable, ans);
 	}
+	//cout << "Mining done" << endl;
 
 	// cout << ans.size() << endl;
 	vector<vector<int>> freq_sets;
 	for(auto S: ans){
 		vector<pair<int, int>> temp;
 		for(auto ele: S){
-			temp.push_back({-1*freq[ele], ele});
+			temp.push_back({-1*freq1[ele], ele});
 		}
 		sort(temp.begin(), temp.end());
 		vector<int> temp_list;
@@ -396,8 +443,12 @@ void fptree(string file, vector<set<int>> &ans, string outfile, double percentil
 	// cout << freq_sets.size() << endl;
 	create_compressor(freq_sets);
 	// cout << compressor.size() << endl;
-	compress_file(file, outfile, freq);
-	cout << "----------" << endl;
+	double compression = compress_file(file, outfile, freq1);
+	cout << "Compression: " << compression*100 << endl;
+	if(compression < 0.001){
+		return 1;
+	}
+	return 0;
 }
 
 vector<string> customSort2(vector<set<int>> &V){
@@ -435,18 +486,51 @@ vector<string> customSort(vector<set<int>> &V){
 	return ans;
 }
 
-int main(int argc, char* argv[]){
+void copy_file(string infile, string outfile){
+    fstream inp(infile);
+    ofstream output;
+    output.open(outfile);
+    string s;
+//    cout << infile << endl;
+    while(getline(inp,s)){
+        stringstream ss(s);
+        string temp;
+        while(ss>>temp){
+            output<<temp << " ";
+        }
+        output<<"\n";
+    }
+    inp.close();
+    output.close();
+    
+}
+
+signed main(int32_t argc, char* argv[]){
 	string dataset = argv[1];
 	string outName = argv[2];
-	vector<string> outfile_names = {"compressed1.dat", "compressed2.dat", outName};
-	vector<double> percentiles = {0.75, 0.7, 0.7};
+	int n = 15;
+	vector<string> outfile_names = {"compressed1.dat", "compressed2.dat"};
+	auto start = high_resolution_clock::now();
 	curmax = 0;
-	for(int i = 0; i < 3; i++){
-		string outfile = outfile_names[i];
+	double per = 1;
+	for(int i = 0; i < n; i++){
+		string outfile = outfile_names[i%2];
 		vector<set<int>> V;
-		fptree(dataset, V, outfile, percentiles[i]);
+		int stop = fptree(dataset, V, outfile, per);
 		dataset = outfile;
+		per += 0.1;
+		if(stop){
+			per = per*1.5;
+		}
+		auto cur_time = high_resolution_clock::now();
+		auto duration = duration_cast<std::chrono::minutes>(cur_time - start);
+		if(duration.count() <  55){
+			//cout << "Writing to file" << endl;
+            		copy_file(outfile, outName);
+        	}
 	}
+	auto end = high_resolution_clock::now();
+	cout << "Time spent: " << duration_cast<milliseconds>(end - start).count() << endl;
 	// getback_file(outName,"finalout.dat");
 	// vector<string> ans = customSort(V);
 

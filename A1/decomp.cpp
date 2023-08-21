@@ -20,6 +20,7 @@ void getback_file(string inputfile, string outputfile){
 	fstream inp(inputfile);
 	string s;
 	map<int,vector<int>> decrypt;
+	int num_int = 0;
 	while(getline(inp,s)){
 		if(s.empty()){
 			break;
@@ -32,12 +33,14 @@ void getback_file(string inputfile, string outputfile){
 		int curkey;
 		ss>>temp;
 		curkey = stoi(temp);
+		num_int++;
 		while(ss>>temp){
+			num_int++;
 			decrypt[curkey].push_back(stoi(temp));
 		}
 	}
 	inp.close();
-	cout << "Decompression started" << endl;
+	//cout << "Decompression started" << endl;
 	// using map to create original file
 	ofstream output;
 	output.open(outputfile);
@@ -50,6 +53,7 @@ void getback_file(string inputfile, string outputfile){
 		stringstream ss1(s);
 		string temp;
 		while(ss1>>temp){
+			num_int++;
 			if(decrypt.find(stoi(temp))!=decrypt.end()){
 				vector<int> val;
 				rec(stoi(temp),decrypt,val);
@@ -66,10 +70,10 @@ void getback_file(string inputfile, string outputfile){
 	}
 	inp1.close();
 	output.close();
-
+	cout << "Integers in compressed file: " << num_int << endl;
 
 }
-int main(int argc, char* argv[]){
+signed main(int32_t argc, char* argv[]){
     string infile = argv[1];
     string outfile = argv[2];
     getback_file(infile,outfile);

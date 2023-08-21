@@ -254,7 +254,7 @@ double compress_file(string file, string outfile, map<int, int> &freq){
 			else
 			{
 				for(auto ele: prev)
-				{99025304
+				{
 					cnt2++;
 					output << ele << " ";
 				}

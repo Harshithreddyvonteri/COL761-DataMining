@@ -1,1 +1,1 @@
-git clone https://github.com/Harshithreddyvonteri/COL761-DataMining.git
+git clone https://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@github.com/Harshithreddyvonteri/COL761-DataMining.git
